@@ -1,0 +1,16 @@
+.formulario { max-width: 830px; padding: 25px 30px; }
+.formulario fieldset { border: 0; min-width: 0; padding: 0; margin: 0 0 25px; }
+.formulario fieldset + fieldset { border-top: 1px solid var(--linha); padding-top: 15px; }
+.formulario legend { float: left; width: 100%; margin-bottom: 15px; color: #21483e; font-size: 1.13rem; font-weight: 650; }
+.campos { display: grid; clear: both; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 22px; }
+.campos label { display: block; font-size: .87rem; font-weight: 600; color: #384d44; }
+.campos small { font-size: .82rem; color: var(--texto-suave); font-weight: 400; }
+.campos .largo { grid-column: 1 / -1; }
+.campos input, .campos select { display: block; width: 100%; min-width: 0; margin-top: 5px; height: 42px; padding: 7px 10px; border: 1px solid #aabbb2; background: white; border-radius: 6px; color: #243d34; font-weight: 400; }
+.campos [aria-invalid="true"] { border-color: #994d30; }
+.acoes-form { border-top: 1px solid var(--linha); padding-top: 18px; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 580px) {
+  .formulario { padding: 18px; }
+  .campos { grid-template-columns: minmax(0, 1fr); }
+  .campos input, .campos select { font-size: 1rem; }
+}

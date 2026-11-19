@@ -1,6 +1,6 @@
 import { ArrowRight, ChevronLeft, ChevronRight, Landmark, Plus, Search, SearchX, X } from 'lucide-react'
 import { Link } from 'react-router'
-import { digitos, formatarDocumento, normalizarTexto } from '../dados/formatacao'
+import { formatarDocumento, normalizarDocumento, normalizarTexto } from '../dados/formatacao'
 import type { Agencia, Cliente } from '../dados/modelos'
 
 export interface Filtros {
@@ -25,7 +25,7 @@ function iniciais(nome: string) {
 
 export default function ListaClientes({ clientes, agencias, filtros, aoFiltrar }: Props) {
   const termo = normalizarTexto(filtros.busca)
-  const doc = /^[\d./\s-]+$/.test(termo) ? digitos(termo) : ''
+  const doc = normalizarDocumento(filtros.busca)
   const resultado = clientes.filter(cliente => {
     const agenciaCorreta = !filtros.agencia || String(cliente.codigoAgencia) === filtros.agencia
     return agenciaCorreta && (

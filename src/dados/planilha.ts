@@ -1,5 +1,5 @@
 import Papa from 'papaparse'
-import { digitos, lerData, normalizarTexto } from './formatacao'
+import { lerData, normalizarDocumento, normalizarTexto } from './formatacao'
 import { estadosCivis, type Agencia, type Carteira, type Cliente, type Conta } from './modelos'
 
 const origem = 'https://docs.google.com/spreadsheets/d/1LkyaeCgiyaIN1IxXnbZQPmVMIcht3PIxMDUXHsvczK0/gviz/tq'
@@ -27,9 +27,10 @@ function codigoAgencia(valor: string): number {
 }
 
 function documento(valor: string): string {
-  // Alguns documentos da origem são curtos. Preservar os dígitos mantém o vínculo com as contas.
-  if (!/^[\d./\s-]+$/.test(obrigatorio(valor))) throw new CampoInvalido()
-  return obrigatorio(digitos(valor))
+  // A origem contém documentos curtos. Preservar seu tamanho mantém o vínculo com as contas.
+  const limpo = normalizarDocumento(obrigatorio(valor))
+  if (!/^[A-Z0-9]+$/.test(limpo)) throw new CampoInvalido()
+  return limpo
 }
 
 function lerCliente(linha: Linha): Cliente {

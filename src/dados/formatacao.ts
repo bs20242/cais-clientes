@@ -2,14 +2,14 @@ export function normalizarTexto(valor: string) {
   return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
 }
 
-export function digitos(valor: string) {
-  return valor.replace(/\D/g, '')
+export function normalizarDocumento(valor: string) {
+  return valor.replace(/[.\s/-]/g, '').toUpperCase()
 }
 
 export function formatarDocumento(valor: string) {
-  const limpo = digitos(valor)
+  const limpo = normalizarDocumento(valor)
   if (limpo.length === 11) return limpo.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
-  if (limpo.length === 14) return limpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+  if (limpo.length === 14) return limpo.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.$2.$3/$4-$5')
   return valor
 }
 

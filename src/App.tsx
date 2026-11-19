@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertCircle, BookUser, RefreshCw } from 'lucide-react'
-import { HashRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router'
-import type { Carteira } from './dados/modelos'
+import { AlertCircle, BookUser, Check, RefreshCw, X } from 'lucide-react'
+import { HashRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router'
+import type { Carteira, Cliente } from './dados/modelos'
 import { carregarCarteira } from './dados/planilha'
 import FichaCliente, { NaoEncontrado } from './paginas/FichaCliente'
 import ListaClientes, { type Filtros } from './paginas/ListaClientes'
+import CadastroCliente from './paginas/CadastroCliente'
 
 const filtrosIniciais: Filtros = { busca: '', agencia: '', pagina: 1 }
 
 function Diretorio() {
   const { pathname } = useLocation()
+  const navegar = useNavigate()
   const principal = useRef<HTMLElement>(null)
   const [dados, setDados] = useState<Carteira>()
+  const [novos, setNovos] = useState<Cliente[]>([])
+  const [avisoCadastro, setAvisoCadastro] = useState('')
   const [filtros, setFiltros] = useState(filtrosIniciais)
   const [versao, setVersao] = useState(0)
   const [carregando, setCarregando] = useState(true)
@@ -42,6 +46,16 @@ function Diretorio() {
     setVersao(anterior => anterior + 1)
   }
 
+  function cadastrar(cliente: Cliente) {
+    // Fica acima das rotas para preservar o cadastro durante a navegação desta sessão.
+    setNovos(anteriores => [cliente, ...anteriores])
+    setFiltros(filtrosIniciais)
+    setAvisoCadastro(cliente.nome + ' foi cadastrado nesta sessão.')
+    void navegar('/')
+  }
+
+  const clientes = [...novos, ...(dados?.clientes ?? [])]
+
   return <>
     <a className="pular" href="#conteudo" onClick={e => { e.preventDefault(); principal.current?.focus() }}>Pular para o conteúdo</a>
     <header className="topo"><div className="barra">
@@ -55,9 +69,11 @@ function Diretorio() {
       {erro && <div className="aviso erro" role="alert"><AlertCircle size={20} aria-hidden="true" /><div><strong>Não foi possível atualizar a planilha.</strong> {erro} {dados && 'Os dados da última leitura continuam disponíveis.'}</div><button className="botao secundario" onClick={atualizar}>Tentar novamente</button></div>}
       {dados ? <>
         {dados.linhasIgnoradas > 0 && <p className="aviso" role="status">Registros ignorados por dados inválidos ou IDs repetidos na planilha: {dados.linhasIgnoradas}.</p>}
+        {pathname === '/' && avisoCadastro && <div className="aviso sucesso" role="status"><Check size={18} aria-hidden="true" />{avisoCadastro}<button className="limpar-busca" aria-label="Fechar confirmação" onClick={() => setAvisoCadastro('')}><X size={16} /></button></div>}
         <Routes>
-          <Route path="/" element={<ListaClientes clientes={dados.clientes} agencias={dados.agencias} filtros={filtros} aoFiltrar={setFiltros} />} />
-          <Route path="/clientes/:id" element={<FichaCliente clientes={dados.clientes} agencias={dados.agencias} contas={dados.contas} />} />
+          <Route path="/" element={<ListaClientes clientes={clientes} agencias={dados.agencias} filtros={filtros} aoFiltrar={setFiltros} />} />
+          <Route path="/novo" element={<CadastroCliente clientes={clientes} agencias={dados.agencias} aoCadastrar={cadastrar} />} />
+          <Route path="/clientes/:id" element={<FichaCliente clientes={clientes} agencias={dados.agencias} contas={dados.contas} />} />
           <Route path="*" element={<NaoEncontrado />} />
         </Routes>
       </> : carregando && <div className="carregamento" role="status"><RefreshCw size={22} className="girando" aria-hidden="true" /> Carregando a planilha…</div>}

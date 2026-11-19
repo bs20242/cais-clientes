@@ -96,6 +96,7 @@ h1 { font: 400 clamp(2.7rem, 4.4vw, 3.65rem)/1.09 'Baskervville', Georgia, serif
 .vazio h2 { color: #25473f; font-size: 1.1rem; }
 .aviso { display: flex; align-items: center; gap: 12px; margin: 0 0 20px; padding: 13px 16px; border: 1px solid #b6d0bd; border-radius: 8px; background: #edf6ec; color: #28503d; font-size: .9rem; line-height: 1.5; }
 .aviso svg { flex-shrink: 0; }
+.sucesso .limpar-busca { margin-left: auto; }
 .aviso .botao { margin-left: auto; white-space: nowrap; }
 .aviso.erro { background: #fff4ec; border-color: #dabcab; color: #663c29; }
 .girando { animation: girar 1.3s linear infinite; }
