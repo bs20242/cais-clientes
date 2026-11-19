@@ -21,19 +21,26 @@ test('valida os dígitos de CPF e CNPJ, inclusive com máscara e letras', () => 
   assert.equal(formatarDocumento('012345'), '012345')
 })
 
-const cabecalho = 'nome,id,cpfCnpj,dataNascimento,email,endereco,rendaAnual,patrimonio,estadoCivil,codigoAgencia,'
+const cabecalho =
+  'nome,id,cpfCnpj,dataNascimento,email,endereco,rendaAnual,patrimonio,estadoCivil,codigoAgencia,'
 const abas: Record<string, string> = {
-  clientes: [cabecalho,
+  clientes: [
+    cabecalho,
     '"Cliente, Exemplo",cl-1,012345,2024-02-29,exemplo@example.org,Rua Um,"1.234,56",0,Viuvo,99,',
     'Repetido,cl-1,99,2024-02-29,x@example.org,Rua Um,1,0,Casado,99,',
     'Data inválida,cl-2,98,2025-02-29,x@example.org,Rua Um,1,0,Casado,99,',
   ].join('\n'),
-  contas: 'tipo,cpfCnpjCliente,id,saldo,limiteCredito,creditoDisponivel\npoupança,012345,ct-1,-15.50,200,75',
+  contas:
+    'tipo,cpfCnpjCliente,id,saldo,limiteCredito,creditoDisponivel\npoupança,012345,ct-1,-15.50,200,75',
   agencias: 'id,nome,codigo,endereco\nag-1,Agência Exemplo,1,"Rua Um, 2"',
 }
 
-test('converte as três abas e mantém documentos curtos e referências ausentes', async t => {
-  const pedido = t.mock.method(globalThis, 'fetch', async (url: URL) => new Response(abas[url.searchParams.get('sheet')!]))
+test('converte as três abas e mantém documentos curtos e referências ausentes', async (t) => {
+  const pedido = t.mock.method(
+    globalThis,
+    'fetch',
+    async (url: URL) => new Response(abas[url.searchParams.get('sheet')!]),
+  )
   const carteira = await carregarCarteira(new AbortController().signal)
   assert.equal(pedido.mock.callCount(), 3)
   assert.equal(carteira.linhasIgnoradas, 2)
@@ -51,7 +58,7 @@ test('converte as três abas e mantém documentos curtos e referências ausentes
   assert.equal(carteira.agencias[0].endereco, 'Rua Um, 2')
 })
 
-test('informa falha quando a origem responde com erro ou muda uma coluna obrigatória', async t => {
+test('informa falha quando a origem responde com erro ou muda uma coluna obrigatória', async (t) => {
   const sinal = new AbortController().signal
   const consulta = t.mock.method(globalThis, 'fetch', async () => new Response('', { status: 503 }))
   await assert.rejects(carregarCarteira(sinal), /Falha ao consultar a aba/)

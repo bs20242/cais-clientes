@@ -2,7 +2,8 @@ import Papa from 'papaparse'
 import { lerData, normalizarDocumento, normalizarTexto } from './formatacao.ts'
 import { estadosCivis, type Agencia, type Carteira, type Cliente, type Conta } from './modelos.ts'
 
-const origem = 'https://docs.google.com/spreadsheets/d/1LkyaeCgiyaIN1IxXnbZQPmVMIcht3PIxMDUXHsvczK0/gviz/tq'
+const origem =
+  'https://docs.google.com/spreadsheets/d/1LkyaeCgiyaIN1IxXnbZQPmVMIcht3PIxMDUXHsvczK0/gviz/tq'
 type Linha = Record<string, string>
 class CampoInvalido extends Error {}
 
@@ -12,12 +13,15 @@ function obrigatorio(valor: string | undefined): string {
 }
 
 function numero(valor: string): number {
-  const texto = obrigatorio(valor).replace(/^R\$\s*/, '').trim()
-  const decimal = texto.includes(',')
-    ? /^[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+),\d+$/.test(texto) && texto.replaceAll('.', '').replace(',', '.')
-    : /^[+-]?\d+(?:\.\d+)?$/.test(texto) && texto
-  if (!decimal || !Number.isFinite(Number(decimal))) throw new CampoInvalido()
-  return Number(decimal)
+  const texto = obrigatorio(valor)
+    .replace(/^R\$\s*/, '')
+    .trim()
+  const usaVirgula = texto.includes(',')
+  const formato = usaVirgula ? /^[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+),\d+$/ : /^[+-]?\d+(?:\.\d+)?$/
+  if (!formato.test(texto)) throw new CampoInvalido()
+  const valorNumerico = Number(usaVirgula ? texto.replaceAll('.', '').replace(',', '.') : texto)
+  if (!Number.isFinite(valorNumerico)) throw new CampoInvalido()
+  return valorNumerico
 }
 
 function codigoAgencia(valor: string): number {
@@ -35,7 +39,9 @@ function documento(valor: string): string {
 
 function lerCliente(linha: Linha): Cliente {
   const nascimento = lerData(obrigatorio(linha.dataNascimento))
-  const estadoCivil = estadosCivis.find(estado => normalizarTexto(estado) === normalizarTexto(linha.estadoCivil))
+  const estadoCivil = estadosCivis.find(
+    (estado) => normalizarTexto(estado) === normalizarTexto(linha.estadoCivil),
+  )
   if (!nascimento || !estadoCivil) throw new CampoInvalido()
   return {
     id: obrigatorio(linha.id),
@@ -67,11 +73,19 @@ function lerConta(linha: Linha): Conta {
 }
 
 function lerAgencia(linha: Linha): Agencia {
-  return { id: obrigatorio(linha.id), codigo: codigoAgencia(linha.codigo), nome: obrigatorio(linha.nome), endereco: obrigatorio(linha.endereco) }
+  return {
+    id: obrigatorio(linha.id),
+    codigo: codigoAgencia(linha.codigo),
+    nome: obrigatorio(linha.nome),
+    endereco: obrigatorio(linha.endereco),
+  }
 }
 
 async function lerAba<T extends { id: string }>(
-  aba: string, colunasObrigatorias: string[], converter: (linha: Linha) => T, signal: AbortSignal,
+  aba: string,
+  colunasObrigatorias: string[],
+  converter: (linha: Linha) => T,
+  signal: AbortSignal,
 ) {
   const url = new URL(origem)
   url.searchParams.set('tqx', 'out:csv')
@@ -81,8 +95,8 @@ async function lerAba<T extends { id: string }>(
   const csv = await resposta.text()
   // Ler por cabeçalho permite reordenar as colunas e ignorar colunas extras sem nome.
   const { data, errors } = Papa.parse<string[]>(csv, { delimiter: ',', skipEmptyLines: 'greedy' })
-  const cabecalho = (data.shift() ?? []).map(campo => campo.trim())
-  if (errors.length || !colunasObrigatorias.every(campo => cabecalho.includes(campo))) {
+  const cabecalho = (data.shift() ?? []).map((campo) => campo.trim())
+  if (errors.length || !colunasObrigatorias.every((campo) => cabecalho.includes(campo))) {
     throw new Error('Não foi possível interpretar a aba ' + aba + '.')
   }
   const itens: T[] = []
@@ -90,7 +104,9 @@ async function lerAba<T extends { id: string }>(
   let ignoradas = 0
   for (const valores of data) {
     const linha: Linha = {}
-    cabecalho.forEach((campo, i) => { if (campo) linha[campo] = valores[i]?.trim() ?? '' })
+    cabecalho.forEach((campo, i) => {
+      if (campo) linha[campo] = valores[i]?.trim() ?? ''
+    })
     try {
       const item = converter(linha)
       if (ids.has(item.id)) throw new CampoInvalido()
@@ -106,12 +122,35 @@ async function lerAba<T extends { id: string }>(
 
 export async function carregarCarteira(signal: AbortSignal): Promise<Carteira> {
   const [clientes, contas, agencias] = await Promise.all([
-    lerAba('clientes', ['id', 'cpfCnpj', 'dataNascimento', 'nome', 'email', 'endereco', 'rendaAnual', 'patrimonio', 'estadoCivil', 'codigoAgencia'], lerCliente, signal),
-    lerAba('contas', ['id', 'cpfCnpjCliente', 'tipo', 'saldo', 'limiteCredito', 'creditoDisponivel'], lerConta, signal),
+    lerAba(
+      'clientes',
+      [
+        'id',
+        'cpfCnpj',
+        'dataNascimento',
+        'nome',
+        'email',
+        'endereco',
+        'rendaAnual',
+        'patrimonio',
+        'estadoCivil',
+        'codigoAgencia',
+      ],
+      lerCliente,
+      signal,
+    ),
+    lerAba(
+      'contas',
+      ['id', 'cpfCnpjCliente', 'tipo', 'saldo', 'limiteCredito', 'creditoDisponivel'],
+      lerConta,
+      signal,
+    ),
     lerAba('agencias', ['id', 'codigo', 'nome', 'endereco'], lerAgencia, signal),
   ])
   return {
-    clientes: clientes.itens, contas: contas.itens, agencias: agencias.itens,
+    clientes: clientes.itens,
+    contas: contas.itens,
+    agencias: agencias.itens,
     linhasIgnoradas: clientes.ignoradas + contas.ignoradas + agencias.ignoradas,
   }
 }

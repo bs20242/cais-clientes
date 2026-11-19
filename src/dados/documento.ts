@@ -2,7 +2,10 @@ import { normalizarDocumento } from './formatacao.ts'
 
 function digitoVerificador(base: string, pesos: number[]) {
   // Na tabela do CNPJ, cada letra vale seu código ASCII menos 48. Para dígitos, isso dá o próprio número.
-  const soma = Array.from(base).reduce((total, caractere, i) => total + (caractere.charCodeAt(0) - 48) * pesos[i], 0)
+  const soma = Array.from(base).reduce(
+    (total, caractere, i) => total + (caractere.charCodeAt(0) - 48) * pesos[i],
+    0,
+  )
   const resto = soma % 11
   return String(resto < 2 ? 0 : 11 - resto)
 }
