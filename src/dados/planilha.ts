@@ -1,6 +1,6 @@
 import Papa from 'papaparse'
-import { lerData, normalizarDocumento, normalizarTexto } from './formatacao'
-import { estadosCivis, type Agencia, type Carteira, type Cliente, type Conta } from './modelos'
+import { lerData, normalizarDocumento, normalizarTexto } from './formatacao.ts'
+import { estadosCivis, type Agencia, type Carteira, type Cliente, type Conta } from './modelos.ts'
 
 const origem = 'https://docs.google.com/spreadsheets/d/1LkyaeCgiyaIN1IxXnbZQPmVMIcht3PIxMDUXHsvczK0/gviz/tq'
 type Linha = Record<string, string>

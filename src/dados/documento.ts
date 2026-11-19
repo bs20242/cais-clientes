@@ -1,4 +1,4 @@
-import { normalizarDocumento } from './formatacao'
+import { normalizarDocumento } from './formatacao.ts'
 
 function digitoVerificador(base: string, pesos: number[]) {
   // Na tabela do CNPJ, cada letra vale seu código ASCII menos 48. Para dígitos, isso dá o próprio número.
